@@ -3,7 +3,7 @@
 A second-screen Formula 1 dashboard: live timing, race control, weather, strategy charts, standings and calendar.
 Built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query and Recharts. Deploys to Vercel.
 
-> **Status:** step 2 of 7 (session detection and Home page header). The full setup and deploy guide arrives in step 7.
+> **Status:** step 3 of 7 (live timing tower, race control and weather with polling). The full setup and deploy guide arrives in step 7.
 
 ## Run locally
 
@@ -14,8 +14,9 @@ cp .env.example .env.local   # optional: add OpenF1 credentials for live data
 npm run dev
 ```
 
-- http://localhost:3000: the Home page header (current/next Grand Prix, LIVE badge, countdown).
+- http://localhost:3000: the Home page: event header, timing tower, weather and race control.
 - http://localhost:3000/api/session/current: the session list the header is built from.
+- http://localhost:3000/api/live/timing?session_key=…&mode=full: the timing payload for one session.
 - http://localhost:3000/api/health: connectivity check for both upstream APIs.
 
 ## Architecture
@@ -25,14 +26,17 @@ app/
   api/                 Route Handlers: the ONLY place that talks to external APIs
     health/route.ts            connectivity check
     session/current/route.ts   sessions around "now" (for live/next detection)
+    live/timing/route.ts       timing tower + race control + weather (full or delta)
   layout.tsx           dark theme, fonts, providers
   providers.tsx        TanStack Query client (browser cache + polling)
 components/
   ui/                  shadcn/ui components (card, badge, skeleton)
-  home/                Home page pieces (event header, ...)
+  home/                Home page: event header, live dashboard, timing tower, race control, weather
+  f1/                  reusable F1 bits (tyre badge, team colour bar)
 hooks/
   use-now.ts           ticking clock (hydration-safe)
   use-session-state.ts live / latest / next session, re-evaluated every second
+  use-timing.ts        polls timing deltas while live, merges them into the state
 lib/
   http.ts              fetch with timeout, ApiError, "use cache" result helpers
   openf1.ts            typed OpenF1 client (+ optional OAuth token handling)
@@ -42,6 +46,9 @@ lib/
   session-state.ts     pure live/latest/next logic (shared by server and browser)
   session-overview.ts  builds the session list from OpenF1 (+ Jolpica fallback)
   format.ts            your-time / IST / track-time formatting, countdown
+  f1.ts                team colours, tyre compounds, lap/gap formatting
+  timing.ts            timing payload types, delta merging, tower rows (shared)
+  live-timing.ts       builds timing payloads from OpenF1 (server)
 ```
 
 ### Caching (two layers)
@@ -74,6 +81,25 @@ upcoming sessions from Jolpica's calendar if OpenF1 hasn't published them yet, a
 list to the browser. The browser re-runs the same function every second, so the LIVE badge and the
 countdown switch on time without polling. If a session is live but no OpenF1 credentials are set,
 the page says so and shows the latest completed session's data instead.
+
+### Live timing and polling
+
+`/api/live/timing` has two modes:
+
+- **full**: the latest state of every car (position, gap, interval, last/best lap, tyre, pit
+  stops), plus race control and weather, reduced on the server to ~13 KB.
+- **delta**: only rows from the last 30 seconds (`date>` filters), ~6 KB.
+
+While a session is live, the browser polls `delta` every 4.5 s and merges it in (`lib/timing.ts`).
+It polls only during a live session, pauses while the tab is hidden, and asks for `full` again if
+its last update is over 15 s old. The delta window is rounded to 5-second steps, so every viewer
+requests the same upstream URLs and shares one cached OpenF1 call. Each poll costs at most 7
+upstream requests (position, intervals, laps, race_control, weather, stints, pit), regardless of
+how many people are watching.
+
+Gaps and intervals come from OpenF1's `intervals` feed in races and sprints. In practice and
+qualifying, they are computed from best lap times. If OpenF1 rejects the configured credentials,
+the page stops polling and falls back to the latest completed session with a note.
 
 ### OpenF1 access
 

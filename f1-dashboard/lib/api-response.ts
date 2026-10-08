@@ -14,7 +14,8 @@ import { ApiError } from "./http";
 
 /** CDN cache presets in seconds, matching the cacheLife profiles in next.config.ts. */
 export const CDN = {
-  live: { sMaxAge: 4, swr: 10 },
+  // swr kept short so a delta is never more than ~9s stale (see RESYNC_AFTER_MS).
+  live: { sMaxAge: 4, swr: 5 },
   session: { sMaxAge: 30, swr: 60 },
   static: { sMaxAge: 3 * 60 * 60, swr: 24 * 60 * 60 },
   historical: { sMaxAge: 24 * 60 * 60, swr: 7 * 24 * 60 * 60 },

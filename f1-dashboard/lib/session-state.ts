@@ -69,13 +69,16 @@ export function graceMs(session: Pick<HeaderSession, "name">): number {
   return /^(race|sprint)$/i.test(session.name) ? 60 * MINUTE : 15 * MINUTE;
 }
 
-export function isLive(s: HeaderSession, now: number): boolean {
+/** The fields the timing checks need (lets the server pass a lighter object). */
+type Timed = Pick<HeaderSession, "start" | "end" | "name">;
+
+export function isLive(s: Timed, now: number): boolean {
   const start = Date.parse(s.start);
   const end = Date.parse(s.end) + graceMs(s);
   return start <= now && now <= end;
 }
 
-export function isCompleted(s: HeaderSession, now: number): boolean {
+export function isCompleted(s: Timed, now: number): boolean {
   return Date.parse(s.end) + graceMs(s) < now;
 }
 
