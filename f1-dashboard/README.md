@@ -3,7 +3,7 @@
 A second-screen Formula 1 dashboard: live timing, race control, weather, strategy charts, standings and calendar.
 Built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query and Recharts. Deploys to Vercel.
 
-> **Status:** step 1 of 7 (project setup, typed API clients, test route). The full setup and deploy guide arrives in step 7.
+> **Status:** step 2 of 7 (session detection and Home page header). The full setup and deploy guide arrives in step 7.
 
 ## Run locally
 
@@ -14,24 +14,34 @@ cp .env.example .env.local   # optional: add OpenF1 credentials for live data
 npm run dev
 ```
 
-- http://localhost:3000 shows an API status page with one card per upstream (OpenF1 and Jolpica).
-- http://localhost:3000/api/health returns the same check as raw JSON.
+- http://localhost:3000: the Home page header (current/next Grand Prix, LIVE badge, countdown).
+- http://localhost:3000/api/session/current: the session list the header is built from.
+- http://localhost:3000/api/health: connectivity check for both upstream APIs.
 
 ## Architecture
 
 ```
 app/
   api/                 Route Handlers: the ONLY place that talks to external APIs
-    health/route.ts    step-1 test route
+    health/route.ts            connectivity check
+    session/current/route.ts   sessions around "now" (for live/next detection)
   layout.tsx           dark theme, fonts, providers
   providers.tsx        TanStack Query client (browser cache + polling)
 components/
   ui/                  shadcn/ui components (card, badge, skeleton)
+  home/                Home page pieces (event header, ...)
+hooks/
+  use-now.ts           ticking clock (hydration-safe)
+  use-session-state.ts live / latest / next session, re-evaluated every second
 lib/
   http.ts              fetch with timeout, ApiError, "use cache" result helpers
   openf1.ts            typed OpenF1 client (+ optional OAuth token handling)
   jolpica.ts           typed Jolpica (Ergast-compatible) client
   api-response.ts      JSON responses with CDN Cache-Control headers
+  api-client.ts        browser helper for calling our own /api routes
+  session-state.ts     pure live/latest/next logic (shared by server and browser)
+  session-overview.ts  builds the session list from OpenF1 (+ Jolpica fallback)
+  format.ts            your-time / IST / track-time formatting, countdown
 ```
 
 ### Caching (two layers)
@@ -50,6 +60,20 @@ lib/
 2. **CDN cache.** Route handlers send `Cache-Control: s-maxage=…, stale-while-revalidate=…`
    (`lib/api-response.ts`). On Vercel the server cache lives per function instance, so the CDN is
    what makes many visitors share one upstream request.
+
+### Session detection
+
+`lib/session-state.ts` decides, from session start/end times alone:
+
+- **live**: started, and not more than 15 min past its scheduled end (60 min for a race or sprint, since they overrun with red flags)
+- **latest completed**: the most recent finished OpenF1 session (it has a `session_key`, so we can show its data)
+- **next**: the first session that hasn't started yet
+
+The server loads this year's OpenF1 `sessions` + `meetings` (and last year's in January), fills in
+upcoming sessions from Jolpica's calendar if OpenF1 hasn't published them yet, and sends a trimmed
+list to the browser. The browser re-runs the same function every second, so the LIVE badge and the
+countdown switch on time without polling. If a session is live but no OpenF1 credentials are set,
+the page says so and shows the latest completed session's data instead.
 
 ### OpenF1 access
 

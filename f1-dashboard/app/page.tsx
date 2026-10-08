@@ -1,19 +1,14 @@
-import { ApiStatus } from "@/components/api-status";
+import { EventHeader } from "@/components/home/event-header";
 
 /**
- * Temporary home page for step 1: shows whether our API layer can reach
- * OpenF1 and Jolpica. Replaced by the live dashboard in step 2.
+ * Home / Live page. Everything below the header follows the session chosen
+ * by useSessionState(): the live one when we can show it, otherwise the
+ * latest completed session. Timing tower, race control and weather: step 3.
  */
 export default function Home() {
   return (
-    <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-8">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">
-          <span className="text-primary">F1</span> Live Dashboard
-        </h1>
-        <p className="text-sm text-muted-foreground">Step 1 · API connectivity check</p>
-      </header>
-      <ApiStatus />
+    <main className="mx-auto w-full max-w-6xl flex-1 space-y-4 px-4 py-4 sm:py-6">
+      <EventHeader />
     </main>
   );
 }
