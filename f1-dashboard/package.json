@@ -22,7 +22,6 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@tanstack/react-query-devtools": "^5.104.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

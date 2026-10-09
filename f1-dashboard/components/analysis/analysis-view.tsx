@@ -12,6 +12,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { TeamBar } from "@/components/f1/team-bar";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalysisDriver, AnalysisMeeting, SessionAnalysis } from "@/lib/analysis";
 import { getJson } from "@/lib/api-client";
@@ -100,7 +101,9 @@ export function AnalysisView() {
   return (
     <div className="space-y-4">
       {/* ---- Selector row: scopes everything below ---- */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* A grid with fixed column widths, so the row doesn't reflow when the
+          option texts change from "Loading…" to long Grand Prix names. */}
+      <div className="grid grid-cols-[5.5rem_minmax(0,1fr)] gap-2 sm:grid-cols-[5.5rem_16rem_12rem]">
         <select
           aria-label="Season"
           value={year}
@@ -122,7 +125,7 @@ export function AnalysisView() {
             const pick = m && (m.sessions.filter((s) => s.name === "Race").at(-1) ?? m.sessions.at(-1));
             setParams({ session: pick ? String(pick.sessionKey) : null, drivers: null });
           }}
-          className={cn(selectClass, "max-w-[14rem]")}
+          className={selectClass}
         >
           {meetings.length === 0 && <option value="">{meetingsQuery.isPending ? "Loading…" : "No sessions yet"}</option>}
           {meetings.map((m) => (
@@ -136,7 +139,7 @@ export function AnalysisView() {
           value={sessionKey ?? ""}
           disabled={!meeting}
           onChange={(e) => setParams({ session: e.target.value, drivers: null })}
-          className={selectClass}
+          className={cn(selectClass, "col-span-2 sm:col-span-1")}
         >
           {meeting?.sessions.map((s) => (
             <option key={s.sessionKey} value={s.sessionKey}>
@@ -147,7 +150,9 @@ export function AnalysisView() {
         </select>
       </div>
 
-      {meetingsQuery.error && <ErrorNote message={meetingsQuery.error.message} onRetry={() => meetingsQuery.refetch()} />}
+      {meetingsQuery.error && (
+        <ErrorState title="Couldn't load the season's sessions" error={meetingsQuery.error} onRetry={() => meetingsQuery.refetch()} retrying={meetingsQuery.isFetching} />
+      )}
       {!meetingsQuery.isPending && !meetingsQuery.error && meetings.length === 0 && (
         <Card>
           <CardContent className="text-sm text-muted-foreground">
@@ -159,7 +164,9 @@ export function AnalysisView() {
         </Card>
       )}
 
-      {analysisQuery.error && !data && <ErrorNote message={analysisQuery.error.message} onRetry={() => analysisQuery.refetch()} />}
+      {analysisQuery.error && !data && (
+        <ErrorState title="Couldn't load this session" error={analysisQuery.error} onRetry={() => analysisQuery.refetch()} retrying={analysisQuery.isFetching} />
+      )}
 
       {(meetingsQuery.isPending || (sessionKey !== null && analysisQuery.isPending)) && <AnalysisSkeleton />}
 
@@ -243,21 +250,6 @@ export function AnalysisView() {
         </>
       )}
     </div>
-  );
-}
-
-function ErrorNote({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-4 text-sm">
-        <span>
-          <span className="font-medium">Couldn&apos;t load this data.</span> <span className="text-muted-foreground">{message}</span>
-        </span>
-        <button onClick={onRetry} className="shrink-0 rounded-md border px-3 py-1.5">
-          Retry
-        </button>
-      </CardContent>
-    </Card>
   );
 }
 

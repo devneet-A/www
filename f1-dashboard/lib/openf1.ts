@@ -345,6 +345,8 @@ async function cachedGet<T>(url: string, profile: CacheProfile): Promise<CachedR
     const data = await fetchJson<T>(url, {
       upstream: "openf1",
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      // Free tier: about 3 requests/second. Authenticated accounts get more.
+      perSecond: token ? 10 : 3,
     });
     result = { ok: true, data };
   } catch (err) {

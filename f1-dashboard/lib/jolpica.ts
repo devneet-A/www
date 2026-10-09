@@ -159,7 +159,8 @@ export interface StandingsTable<T> {
 async function cachedResult<T>(url: string): Promise<CachedResult<T>> {
   "use cache";
   try {
-    const data = await fetchJson<T>(url, { upstream: "jolpica" });
+    // Jolpica allows about 4 requests/second in bursts.
+    const data = await fetchJson<T>(url, { upstream: "jolpica", perSecond: 4 });
     cacheLife("static");
     return { ok: true, data };
   } catch (err) {

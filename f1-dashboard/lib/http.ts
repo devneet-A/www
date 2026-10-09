@@ -36,11 +36,41 @@ interface FetchJsonOptions {
   upstream: Upstream;
   headers?: Record<string, string>;
   timeoutMs?: number;
+  /** Requests per second allowed to this upstream (see `waitForSlot`). */
+  perSecond?: number;
 }
 
-export async function fetchJson<T>(url: string, opts: FetchJsonOptions): Promise<T> {
-  const { upstream, headers, timeoutMs = DEFAULT_TIMEOUT_MS } = opts;
+// ---------------------------------------------------------------------------
+// Request spacing (rate limiting)
+// ---------------------------------------------------------------------------
 
+/**
+ * Spaces out request STARTS per upstream, e.g. 3/s means one every ~333ms.
+ * A cold page load can fire 7+ requests at once (Promise.all); without this
+ * they'd hit the upstream in the same instant and trip its burst limit.
+ * The queue is per server instance, so it smooths bursts from one page load;
+ * the caches (server + CDN) are what keep total traffic low.
+ */
+const nextSlot: Record<Upstream, number> = { openf1: 0, jolpica: 0 };
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function waitForSlot(upstream: Upstream, perSecond: number) {
+  const now = Date.now();
+  const slot = Math.max(now, nextSlot[upstream]);
+  nextSlot[upstream] = slot + 1000 / perSecond;
+  if (slot > now) await sleep(slot - now);
+}
+
+/** Wait from a Retry-After header (seconds), capped so we stay inside the function time limit. */
+function retryAfterMs(res: Response): number {
+  const seconds = Number(res.headers.get("retry-after"));
+  return Math.min(Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : 1500, 3000);
+}
+
+export async function fetchJson<T>(url: string, opts: FetchJsonOptions, attempt = 1): Promise<T> {
+  const { upstream, headers, timeoutMs = DEFAULT_TIMEOUT_MS, perSecond = 4 } = opts;
+
+  await waitForSlot(upstream, perSecond);
   let res: Response;
   try {
     res = await fetch(url, {
@@ -64,6 +94,11 @@ export async function fetchJson<T>(url: string, opts: FetchJsonOptions): Promise
     throw new ApiError(`${upstream} requires authentication for this data`, 401, upstream, true);
   }
   if (res.status === 429) {
+    // One polite retry after the wait the API asks for; then give up with a clear message.
+    if (attempt === 1) {
+      await sleep(retryAfterMs(res));
+      return fetchJson<T>(url, opts, 2);
+    }
     throw new ApiError(`${upstream} rate limit reached, try again shortly`, 429, upstream);
   }
   // OpenF1 answers 404 when a filter matches nothing. For a dashboard

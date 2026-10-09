@@ -320,7 +320,8 @@ async function cachedTelemetry(
   }
 }
 
+/** Returns the telemetry plus whether the session has finished (for CDN cache headers). */
 export async function buildTelemetry(sessionKey: number, driverNumber: number, now: number) {
   const { completed } = await sessionStatus(sessionKey, now);
-  return unwrap(await cachedTelemetry(sessionKey, driverNumber, completed));
+  return { telemetry: unwrap(await cachedTelemetry(sessionKey, driverNumber, completed)), completed };
 }

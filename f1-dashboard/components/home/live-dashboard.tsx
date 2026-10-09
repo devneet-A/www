@@ -5,9 +5,10 @@
  * race control for the session picked by useSessionState() (the live one
  * when we can show it, otherwise the latest completed one).
  */
-import { AlertTriangle, RotateCw } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNow } from "@/hooks/use-now";
 import { useSessionState } from "@/hooks/use-session-state";
@@ -56,7 +57,7 @@ function LiveStatus({ fetchedAt, failing }: { fetchedAt: number; failing: boolea
   const ago = now === null ? 0 : Math.max(0, Math.round((now - fetchedAt) / 1000));
   return (
     <span className={cn("inline-flex items-center gap-1.5", failing && "text-amber-300")}>
-      <span className={cn("size-1.5 rounded-full", failing ? "bg-amber-400" : "animate-pulse bg-primary")} />
+      <span className={cn("size-1.5 rounded-full", failing ? "bg-amber-400" : "bg-primary motion-safe:animate-pulse")} />
       {failing ? `Reconnecting… (last update ${ago}s ago)` : `Live · updated ${ago}s ago`}
     </span>
   );
@@ -82,33 +83,24 @@ export function LiveDashboard() {
   // Recompute rows only when the merged data changes, not on every clock tick.
   const tower = useMemo(() => (timing.data ? buildTower(timing.data) : null), [timing.data]);
 
-  // The header already explains "no schedule" errors; nothing to add here.
-  if (!state) return <DashboardSkeleton />;
+  // Render nothing until the header knows which session to show. The header's
+  // final height varies (live vs next session, notes), so a skeleton here
+  // would be pushed down when it resolves: a visible jump. Content that
+  // appears below a settled header doesn't jump. The header also explains
+  // "no schedule" errors, so there's nothing to add here either way.
+  if (!state) return null;
   if (!dataSession) return null;
 
   if (timing.isPending) return <DashboardSkeleton />;
 
   if (!timing.data || !tower) {
-    const err = timing.error;
-    const authRequired = isAuthError(err);
     return (
-      <Card>
-        <CardContent className="flex items-center justify-between gap-4">
-          <div>
-            <p className="font-medium">Couldn&apos;t load timing for {dataSession.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {authRequired ? "This data needs OpenF1 credentials (see README)." : (err?.message ?? "Please try again.")}
-            </p>
-          </div>
-          <button
-            onClick={() => timing.refetch()}
-            disabled={timing.isFetching}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm disabled:opacity-50"
-          >
-            <RotateCw className={cn("size-3.5", timing.isFetching && "animate-spin")} /> Retry
-          </button>
-        </CardContent>
-      </Card>
+      <ErrorState
+        title={`Couldn't load timing for ${dataSession.name}`}
+        error={timing.error}
+        onRetry={() => timing.refetch()}
+        retrying={timing.isFetching}
+      />
     );
   }
 

@@ -12,9 +12,10 @@ export async function GET(request: NextRequest) {
   try {
     const sessionKey = intParam(params, "session_key");
     const driverNumber = intParam(params, "driver_number", { min: 1, max: 99 });
-    // A fastest lap only changes while the session runs; the route caches
-    // like a session list (60s) and the server-side cache handles the rest.
-    return json(await buildTelemetry(sessionKey, driverNumber, Date.now()), "session");
+    // A fastest lap only changes while the session runs: finished sessions
+    // are cached for days, a running one for a minute.
+    const { telemetry, completed } = await buildTelemetry(sessionKey, driverNumber, Date.now());
+    return json(telemetry, completed ? "historical" : "session");
   } catch (err) {
     return errorResponse(err);
   }

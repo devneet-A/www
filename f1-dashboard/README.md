@@ -3,7 +3,7 @@
 A second-screen Formula 1 dashboard: live timing, race control, weather, strategy charts, standings and calendar.
 Built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query and Recharts. Deploys to Vercel.
 
-> **Status:** step 5 of 7 (standings and calendar). The full setup and deploy guide arrives in step 7.
+> **Status:** step 6 of 7 (polish: loading/error states, mobile, caching review). The full setup and deploy guide arrives in step 7.
 
 ## Run locally
 
@@ -88,6 +88,21 @@ lib/
    (`lib/api-response.ts`). On Vercel the server cache lives per function instance, so the CDN is
    what makes many visitors share one upstream request.
 
+3. **Request spacing.** `lib/http.ts` spaces out upstream requests (OpenF1 3/s, or 10/s with
+   credentials; Jolpica 4/s) and retries once on HTTP 429, honouring `Retry-After`. A cold
+   analysis load fires ~7 requests at once; this keeps them inside the burst limits.
+
+| Route | CDN cache | Browser refresh |
+| --- | --- | --- |
+| `/api/session/current` | 30 s (4 s if an upstream failed) | every 60 s |
+| `/api/live/timing` | 4 s while live/upcoming, 1 day once finished | every 4.5 s, only while live |
+| `/api/analysis/sessions` | 30 s | on demand |
+| `/api/analysis/session`, `/telemetry` | 30 s while running, 1 day once finished | on demand |
+| `/api/standings`, `/api/calendar` | 3 h (current season), 1 day (past seasons) | on demand |
+| `/api/health` | never | on demand |
+
+Errors are never cached at the CDN (`no-store`), and only for 5 s on the server.
+
 ### Session detection
 
 `lib/session-state.ts` decides, from session start/end times alone:
@@ -148,6 +163,19 @@ the page stops polling and falls back to the latest completed session with a not
 - Times are converted in the browser with `Intl.DateTimeFormat`, so they're always in the viewer's
   timezone; the IST/UTC switch and the season are kept in the URL.
 - The current season is cached for 3 hours, past seasons for days.
+
+### Loading and error states
+
+- **No layout jumps.** Skeletons match the final layout, and the Home dashboard waits for the
+  header to settle before rendering below it. Measured CLS (layout shift) is 0.000 on every page
+  at 360, 768 and 1280 px.
+- **One error card** (`components/ui/error-state.tsx`) everywhere: what failed, why in plain
+  words (offline, rate limit, timeout, credentials), and a Retry button.
+- **Safety nets:** `app/error.tsx` for unexpected rendering errors, `app/global-error.tsx` if the
+  layout itself fails, `app/not-found.tsx` for unknown URLs.
+- **Offline banner** when the browser loses its connection; data refreshes on reconnect.
+- **Accessibility:** a "Skip to content" link, animations off when the OS asks for reduced
+  motion, table views for every chart.
 
 ### OpenF1 access
 

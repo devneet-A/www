@@ -7,10 +7,11 @@
  */
 import Image from "next/image";
 import { useState } from "react";
-import { AlertTriangle, RotateCw } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Countdown } from "@/components/f1/countdown";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionState } from "@/hooks/use-session-state";
 import {
@@ -46,7 +47,8 @@ function shortName(name: string): string {
  */
 function Flag({ src, country }: { src: string; country: string }) {
   const [failed, setFailed] = useState(false);
-  if (failed) return null;
+  // Keep the same box when the image fails so the title doesn't shift.
+  if (failed) return <span aria-hidden className="h-6 w-10 shrink-0 rounded-sm bg-muted" />;
   return (
     <Image
       src={src}
@@ -65,7 +67,7 @@ export function LiveBadge() {
     <Badge className="gap-1.5 bg-primary px-2.5 text-primary-foreground">
       {/* Pulsing dot: the ping layer animates, the solid dot stays put. */}
       <span className="relative flex size-2">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-white opacity-75" />
+        <span className="absolute inline-flex size-full rounded-full motion-safe:animate-ping bg-white opacity-75" />
         <span className="relative inline-flex size-2 rounded-full bg-white" />
       </span>
       LIVE
@@ -145,26 +147,6 @@ function DataSourceNote({ state }: { state: SessionState }) {
   );
 }
 
-function ScheduleError({ message, onRetry, retrying }: { message?: string; onRetry: () => void; retrying: boolean }) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-4">
-        <div>
-          <p className="font-medium">Couldn&apos;t load the F1 schedule</p>
-          <p className="text-sm text-muted-foreground">{message ?? "Please try again in a moment."}</p>
-        </div>
-        <button
-          onClick={onRetry}
-          disabled={retrying}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm disabled:opacity-50"
-        >
-          <RotateCw className={cn("size-3.5", retrying && "animate-spin")} /> Retry
-        </button>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function EventHeaderSkeleton() {
   // Mirrors the real layout's height so the page doesn't jump on load.
   return (
@@ -186,7 +168,7 @@ export function EventHeader() {
   if (isPending || (state === null && !error)) return <EventHeaderSkeleton />;
 
   if (!data || !state || now === null) {
-    return <ScheduleError message={error?.message} onRetry={() => refetch()} retrying={isFetching} />;
+    return <ErrorState title="Couldn't load the F1 schedule" error={error} onRetry={() => refetch()} retrying={isFetching} />;
   }
 
   const { live, next, headerMeeting } = state;
@@ -195,7 +177,9 @@ export function EventHeader() {
   // No sessions at all: if an upstream failed, say so (with a retry) rather
   // than pretending the calendar is empty.
   if (!event && data.warnings.length > 0) {
-    return <ScheduleError message={data.warnings.join(" · ")} onRetry={() => refetch()} retrying={isFetching} />;
+    return (
+      <ErrorState title="Couldn't load the F1 schedule" message={data.warnings.join(" · ")} onRetry={() => refetch()} retrying={isFetching} />
+    );
   }
 
   if (!event) {

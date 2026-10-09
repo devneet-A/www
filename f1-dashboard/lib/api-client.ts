@@ -31,3 +31,19 @@ export async function getJson<T>(path: string, signal?: AbortSignal): Promise<T>
   }
   return res.json() as Promise<T>;
 }
+
+/**
+ * A short, human explanation of what went wrong, for error cards.
+ * Our API already sends friendly messages; this adds context for the
+ * cases a fan can act on (offline, wait a moment, credentials).
+ */
+export function friendlyError(error: unknown): string {
+  if (error instanceof ClientApiError) {
+    if (error.status === 0) return "You appear to be offline. We'll retry when you're back online.";
+    if (error.authRequired) return "This data needs OpenF1 credentials (see the README).";
+    if (error.status === 429) return "The data provider is busy (rate limit). Try again in a few seconds.";
+    if (error.status === 504) return "The data provider took too long to answer. Try again in a moment.";
+    return error.message;
+  }
+  return "Something went wrong. Please try again.";
+}

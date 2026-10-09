@@ -15,6 +15,7 @@ import { Legend } from "@/components/charts/legend";
 import { CHART, seriesStyle, type SeriesStyle } from "@/components/charts/series";
 import { TeamBar } from "@/components/f1/team-bar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getJson } from "@/lib/api-client";
 import type { StandingsPayload } from "@/lib/standings";
@@ -131,17 +132,7 @@ export function StandingsView() {
           <Skeleton className="h-[28rem]" />
         </div>
       ) : !query.data ? (
-        <Card>
-          <CardContent className="flex items-center justify-between gap-4 text-sm">
-            <span>
-              <span className="font-medium">Couldn&apos;t load the standings.</span>{" "}
-              <span className="text-muted-foreground">{query.error?.message}</span>
-            </span>
-            <button onClick={() => query.refetch()} className="shrink-0 rounded-md border px-3 py-1.5">
-              Retry
-            </button>
-          </CardContent>
-        </Card>
+        <ErrorState title="Couldn't load the standings" error={query.error} onRetry={() => query.refetch()} retrying={query.isFetching} />
       ) : entries.length === 0 ? (
         <Card>
           <CardContent className="text-sm text-muted-foreground">No results yet for {year}. The table fills in after the first race.</CardContent>

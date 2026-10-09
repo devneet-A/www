@@ -12,6 +12,7 @@ import { Countdown } from "@/components/f1/countdown";
 import { TeamBar } from "@/components/f1/team-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNow } from "@/hooks/use-now";
 import { getJson } from "@/lib/api-client";
@@ -145,16 +146,7 @@ export function CalendarView() {
           ))}
         </div>
       ) : !query.data ? (
-        <Card>
-          <CardContent className="flex items-center justify-between gap-4 text-sm">
-            <span>
-              <span className="font-medium">Couldn&apos;t load the calendar.</span> <span className="text-muted-foreground">{query.error?.message}</span>
-            </span>
-            <button onClick={() => query.refetch()} className="shrink-0 rounded-md border px-3 py-1.5">
-              Retry
-            </button>
-          </CardContent>
-        </Card>
+        <ErrorState title="Couldn't load the calendar" error={query.error} onRetry={() => query.refetch()} retrying={query.isFetching} />
       ) : races.length === 0 ? (
         <Card>
           <CardContent className="text-sm text-muted-foreground">The {year} calendar hasn&apos;t been published yet.</CardContent>

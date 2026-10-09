@@ -8,7 +8,7 @@ import { LiveDashboard } from "@/components/home/live-dashboard";
  */
 export default function Home() {
   return (
-    <main className="mx-auto w-full max-w-6xl flex-1 space-y-4 px-4 py-4 sm:py-6">
+    <main id="main" className="mx-auto w-full max-w-6xl flex-1 space-y-4 px-4 py-4 sm:py-6">
       <EventHeader />
       <LiveDashboard />
     </main>

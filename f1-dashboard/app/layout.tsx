@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ConnectionBanner } from "@/components/connection-banner";
 import { SiteHeader } from "@/components/site-header";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -21,8 +22,16 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
+        {/* Keyboard users can jump past the navigation straight to the page. */}
+        <a
+          href="#main"
+          className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        >
+          Skip to content
+        </a>
         <Providers>
           <SiteHeader />
+          <ConnectionBanner />
           {children}
         </Providers>
       </body>
