@@ -36,11 +36,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-
-  images: {
-    // Driver headshots, flags and circuit images from the APIs.
-    remotePatterns: [{ protocol: "https", hostname: "media.formula1.com" }, { protocol: "https", hostname: "www.formula1.com" }],
-  },
 };
 
 export default nextConfig;
