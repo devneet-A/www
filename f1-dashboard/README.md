@@ -3,7 +3,7 @@
 A second-screen Formula 1 dashboard: live timing, race control, weather, strategy charts, standings and calendar.
 Built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query and Recharts. Deploys to Vercel.
 
-> **Status:** step 4 of 7 (analysis page with historical charts). The full setup and deploy guide arrives in step 7.
+> **Status:** step 5 of 7 (standings and calendar). The full setup and deploy guide arrives in step 7.
 
 ## Run locally
 
@@ -16,6 +16,8 @@ npm run dev
 
 - http://localhost:3000: the Home page: event header, timing tower, weather and race control.
 - http://localhost:3000/analysis: lap times, race trace, tyre strategy, gap to leader and telemetry for any session since 2023.
+- http://localhost:3000/standings: drivers' and constructors' championships with points progression.
+- http://localhost:3000/calendar: every round and session in your timezone (or IST / UTC).
 - http://localhost:3000/api/session/current: the session list the header is built from.
 - http://localhost:3000/api/live/timing?session_key=…&mode=full: the timing payload for one session.
 - http://localhost:3000/api/health: connectivity check for both upstream APIs.
@@ -31,7 +33,11 @@ app/
     analysis/sessions          Grands Prix + sessions of a season (selector)
     analysis/session           per-lap data for the charts of one session
     analysis/telemetry         fastest-lap telemetry for one driver
+    standings                  championships + cumulative points per round
+    calendar                   season schedule + winners
   analysis/page.tsx    the charts page
+  standings/page.tsx   championship tables + points progression
+  calendar/page.tsx    season calendar
   layout.tsx           dark theme, fonts, providers
   providers.tsx        TanStack Query client (browser cache + polling)
 components/
@@ -40,6 +46,8 @@ components/
   f1/                  reusable F1 bits (tyre badge, team colour bar)
   charts/              chart frame (chart/table toggle), legend, tooltip, series styles
   analysis/            selector + the five analysis charts
+  standings/           standings tables + points progression chart
+  calendar/            calendar cards with timezone switch
 hooks/
   use-now.ts           ticking clock (hydration-safe)
   use-session-state.ts live / latest / next session, re-evaluated every second
@@ -59,6 +67,8 @@ lib/
   analysis.ts          analysis payload types (shared)
   analysis-server.ts   builds analysis + telemetry payloads (server, cached whole)
   params.ts            query-string validation for route handlers
+  standings.ts         standings + calendar payload types (shared)
+  standings-server.ts  builds standings + calendar from Jolpica, colours from OpenF1
 ```
 
 ### Caching (two layers)
@@ -126,6 +136,18 @@ the page stops polling and falls back to the latest completed session with a not
   driver of each team gets a dashed line, and every chart has a legend, end labels and a
   **Table** view with the exact numbers.
 - Finished sessions are cached for days, both server-side and at the CDN.
+
+### Standings and calendar
+
+- Data comes from **Jolpica**. It has no team colours, so they're borrowed from OpenF1's driver list
+  for the same season and matched by driver code. Constructors take the colour of their drivers,
+  because team names differ between the two APIs ("RB F1 Team" vs "Racing Bulls").
+- **Points progression** adds up race and sprint results round by round. The full season's results
+  come back in pages of 100 rows (~4 requests), which are merged by round.
+- **Calendar winners** use `/{year}/results/1`: only P1 of each round, in one request.
+- Times are converted in the browser with `Intl.DateTimeFormat`, so they're always in the viewer's
+  timezone; the IST/UTC switch and the season are kept in the URL.
+- The current season is cached for 3 hours, past seasons for days.
 
 ### OpenF1 access
 

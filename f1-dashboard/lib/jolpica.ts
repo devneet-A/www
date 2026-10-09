@@ -244,3 +244,6 @@ export const getSeasonResults = (season: Season = "current") => getAllRacePages(
 
 /** Every sprint result of a season (sprints award points too). */
 export const getSeasonSprintResults = (season: Season = "current") => getAllRacePages(`${season}/sprint`);
+
+/** Only the winner of each race (`results/1`): one small request for the calendar. */
+export const getSeasonWinners = (season: Season = "current") => getAllRacePages(`${season}/results/1`);

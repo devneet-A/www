@@ -8,13 +8,13 @@
 import Image from "next/image";
 import { useState } from "react";
 import { AlertTriangle, RotateCw } from "lucide-react";
+import { Countdown } from "@/components/f1/countdown";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionState } from "@/hooks/use-session-state";
 import {
   IST,
-  countdownParts,
   formatDateTime,
   formatTime,
   formatTrackTime,
@@ -70,27 +70,6 @@ export function LiveBadge() {
       </span>
       LIVE
     </Badge>
-  );
-}
-
-function Countdown({ target, now }: { target: string; now: number }) {
-  const { days, hours, minutes, seconds } = countdownParts(Date.parse(target) - now);
-  const parts: [number, string][] = [
-    [days, "d"],
-    [hours, "h"],
-    [minutes, "m"],
-    [seconds, "s"],
-  ];
-  return (
-    // aria-live off: a screen reader announcing every second would be unbearable.
-    <div className="flex items-baseline gap-2 font-mono" aria-live="off">
-      {parts.map(([value, unit]) => (
-        <span key={unit} className="flex items-baseline">
-          <span className="text-3xl font-bold tabular-nums sm:text-4xl">{String(value).padStart(2, "0")}</span>
-          <span className="ml-0.5 text-sm text-muted-foreground">{unit}</span>
-        </span>
-      ))}
-    </div>
   );
 }
 

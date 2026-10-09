@@ -16,17 +16,17 @@ interface Props {
   formatValue: (v: number) => string;
   /** Heading of the tooltip, from the x value. Defaults to "Lap N". */
   formatLabel?: (x: number) => string;
-  /** Sort rows ascending by value (lap times, positions, gaps). */
-  sort?: boolean;
+  /** Row order: "asc" for lap times/positions/gaps, "desc" for points, false to keep series order. */
+  sort?: "asc" | "desc" | false;
 }
 
-export function ChartTooltip({ active, label, payload, series, formatValue, formatLabel = (x) => `Lap ${x}`, sort = true }: Props) {
+export function ChartTooltip({ active, label, payload, series, formatValue, formatLabel = (x) => `Lap ${x}`, sort = "asc" }: Props) {
   if (!active || !payload?.length) return null;
   const byKey = new Map(series.map((s) => [s.key, s]));
   const rows = payload
     .filter((p) => typeof p.value === "number" && byKey.has(String(p.dataKey)))
     .map((p) => ({ s: byKey.get(String(p.dataKey))!, v: p.value as number }));
-  if (sort) rows.sort((a, b) => a.v - b.v);
+  if (sort) rows.sort((a, b) => (sort === "asc" ? a.v - b.v : b.v - a.v));
   if (rows.length === 0) return null;
   return (
     <div className="rounded-md border bg-popover px-2.5 py-2 text-xs shadow-lg">

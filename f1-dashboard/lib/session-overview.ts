@@ -42,7 +42,7 @@ function fromOpenF1(s: openf1.Session, meeting: openf1.Meeting | undefined): Hea
  * Jolpica only publishes start times, so we estimate durations to know when
  * a session is "over". These are typical lengths, not official ones.
  */
-const JOLPICA_SESSIONS: { field: keyof jolpica.Race; name: string; type: string; minutes: number }[] = [
+export const JOLPICA_SESSIONS: { field: keyof jolpica.Race; name: string; type: string; minutes: number }[] = [
   { field: "FirstPractice", name: "Practice 1", type: "Practice", minutes: 60 },
   { field: "SecondPractice", name: "Practice 2", type: "Practice", minutes: 60 },
   { field: "ThirdPractice", name: "Practice 3", type: "Practice", minutes: 60 },
