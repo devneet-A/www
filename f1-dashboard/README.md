@@ -3,7 +3,7 @@
 A second-screen Formula 1 dashboard: live timing, race control, weather, strategy charts, standings and calendar.
 Built with Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui, TanStack Query and Recharts. Deploys to Vercel.
 
-> **Status:** step 3 of 7 (live timing tower, race control and weather with polling). The full setup and deploy guide arrives in step 7.
+> **Status:** step 4 of 7 (analysis page with historical charts). The full setup and deploy guide arrives in step 7.
 
 ## Run locally
 
@@ -15,6 +15,7 @@ npm run dev
 ```
 
 - http://localhost:3000: the Home page: event header, timing tower, weather and race control.
+- http://localhost:3000/analysis: lap times, race trace, tyre strategy, gap to leader and telemetry for any session since 2023.
 - http://localhost:3000/api/session/current: the session list the header is built from.
 - http://localhost:3000/api/live/timing?session_key=…&mode=full: the timing payload for one session.
 - http://localhost:3000/api/health: connectivity check for both upstream APIs.
@@ -27,12 +28,18 @@ app/
     health/route.ts            connectivity check
     session/current/route.ts   sessions around "now" (for live/next detection)
     live/timing/route.ts       timing tower + race control + weather (full or delta)
+    analysis/sessions          Grands Prix + sessions of a season (selector)
+    analysis/session           per-lap data for the charts of one session
+    analysis/telemetry         fastest-lap telemetry for one driver
+  analysis/page.tsx    the charts page
   layout.tsx           dark theme, fonts, providers
   providers.tsx        TanStack Query client (browser cache + polling)
 components/
   ui/                  shadcn/ui components (card, badge, skeleton)
   home/                Home page: event header, live dashboard, timing tower, race control, weather
   f1/                  reusable F1 bits (tyre badge, team colour bar)
+  charts/              chart frame (chart/table toggle), legend, tooltip, series styles
+  analysis/            selector + the five analysis charts
 hooks/
   use-now.ts           ticking clock (hydration-safe)
   use-session-state.ts live / latest / next session, re-evaluated every second
@@ -49,6 +56,9 @@ lib/
   f1.ts                team colours, tyre compounds, lap/gap formatting
   timing.ts            timing payload types, delta merging, tower rows (shared)
   live-timing.ts       builds timing payloads from OpenF1 (server)
+  analysis.ts          analysis payload types (shared)
+  analysis-server.ts   builds analysis + telemetry payloads (server, cached whole)
+  params.ts            query-string validation for route handlers
 ```
 
 ### Caching (two layers)
@@ -100,6 +110,22 @@ how many people are watching.
 Gaps and intervals come from OpenF1's `intervals` feed in races and sprints. In practice and
 qualifying, they are computed from best lap times. If OpenF1 rejects the configured credentials,
 the page stops polling and falls back to the latest completed session with a note.
+
+### Analysis charts
+
+- **Selection lives in the URL** (`/analysis?year=2026&session=9161&drivers=1,4`), so views can be
+  bookmarked and shared. The default is the latest finished race and its top 5.
+- **Position and gap per lap come from lap timestamps**, not the `intervals` feed. A car finishes
+  lap N when it starts lap N+1, so ranking those moments gives the order, and the difference to
+  the first car gives the gap. This avoids downloading ~36k interval rows per race.
+- **Telemetry** is fetched only for the fastest lap's time window (`car_data` with `date>=`/`date<=`).
+  Distance is integrated from speed, because OpenF1 doesn't provide it. Both laps are resampled to
+  a shared 10 m grid so the synced tooltips compare the same point on track.
+- **Colours:** team colours from the API, as requested. Teammates share a colour and some team
+  colours are close (a colour-blindness check flagged Haas grey vs Williams blue), so the second
+  driver of each team gets a dashed line, and every chart has a legend, end labels and a
+  **Table** view with the exact numbers.
+- Finished sessions are cached for days, both server-side and at the CDN.
 
 ### OpenF1 access
 
