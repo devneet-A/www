@@ -7,7 +7,8 @@
  * Team colours are NOT here: they come from the OpenF1 API at runtime.
  */
 :root {
-  --radius: 0.625rem;
+  /* Larger radius: soft, floating panels (cards use radius-3xl, controls are full pills). */
+  --radius: 1rem;
   --background: oklch(0.145 0.005 270);
   --foreground: oklch(0.97 0 0);
   --card: oklch(0.19 0.006 270);
@@ -31,7 +32,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-titillium), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -65,5 +66,31 @@
     @apply bg-background text-foreground;
     /* Tabular numbers keep timing columns from jiggling as digits change. */
     font-variant-numeric: tabular-nums;
+    /* A faint red glow at the top and a cooler one at the bottom give the
+       floating panels some depth to sit on. Fixed so it doesn't scroll. */
+    background-image:
+      radial-gradient(60rem 30rem at 50% -10rem, oklch(0.6 0.23 27 / 0.16), transparent 70%),
+      radial-gradient(50rem 30rem at 100% 110%, oklch(0.55 0.12 260 / 0.12), transparent 70%);
+    background-attachment: fixed;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Pill-shaped native <select>: our own chevron so it looks the same in every browser. */
+  .pill-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a0a0b0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    padding-right: 2.25rem;
+  }
+  .pill-select option {
+    background-color: var(--card);
+    color: var(--foreground);
   }
 }

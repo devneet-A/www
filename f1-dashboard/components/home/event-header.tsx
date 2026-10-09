@@ -108,7 +108,7 @@ function WeekendSchedule({ sessions, now }: { sessions: HeaderSession[]; now: nu
           <li
             key={s.id}
             className={cn(
-              "min-w-[4.5rem] shrink-0 rounded-md border px-2.5 py-1.5 text-center",
+              "min-w-[4.75rem] shrink-0 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-center",
               live && "border-primary bg-primary/15",
               done && "opacity-50",
             )}
@@ -131,7 +131,7 @@ function DataSourceNote({ state }: { state: SessionState }) {
   const label = `${dataSession.name} · ${dataSession.meetingName}`;
   if (mode === "live-no-auth") {
     return (
-      <p className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-sm text-amber-200">
+      <p className="flex gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-2.5 text-sm text-amber-200">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
         <span>
           {live?.name} is live, but live timing needs an OpenF1 account (see README). Showing the latest completed
@@ -194,14 +194,14 @@ export function EventHeader() {
   }
 
   return (
-    <Card className="gap-5 overflow-hidden border-t-4 border-t-primary">
+    <Card className="gap-5 overflow-hidden border-primary/30 bg-[radial-gradient(120%_140%_at_0%_0%,oklch(0.6_0.23_27/0.22),transparent_55%)]">
       <CardContent className="space-y-5">
         {/* Event title */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             {event.countryFlag && <Flag src={event.countryFlag} country={event.countryName} />}
             <div className="min-w-0">
-              <h1 className="text-xl font-bold tracking-tight text-balance sm:text-2xl">{event.meetingName}</h1>
+              <h1 className="text-2xl font-black tracking-tight text-balance italic sm:text-3xl">{event.meetingName}</h1>
               <p className="text-sm text-muted-foreground">
                 {event.circuit}
                 {event.location && event.location !== event.circuit ? ` · ${event.location}` : ""} · {event.countryName}

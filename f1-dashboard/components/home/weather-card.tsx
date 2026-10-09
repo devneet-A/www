@@ -10,7 +10,7 @@ const cardinal = (deg: number) => CARDINALS[Math.round((((deg % 360) + 360) % 36
 
 function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-2.5 rounded-lg bg-muted/40 p-2.5">
+    <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.05] bg-white/[0.03] p-3">
       <span className="text-muted-foreground">{icon}</span>
       <div className="min-w-0">
         <div className="text-[11px] text-muted-foreground">{label}</div>

@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Countdown } from "@/components/f1/countdown";
+import { LiveBadge } from "@/components/home/event-header";
 import { TeamBar } from "@/components/f1/team-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +19,7 @@ import { useNow } from "@/hooks/use-now";
 import { getJson } from "@/lib/api-client";
 import { IST, localZoneName } from "@/lib/format";
 import type { CalendarPayload, CalendarRace } from "@/lib/standings";
+import { pillButton, pillSelect } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 
 type Zone = "local" | "ist" | "utc";
@@ -118,11 +120,15 @@ export function CalendarView() {
   const races = query.data?.races ?? [];
   const next = now === null ? null : (races.find((r) => !raceDone(r, now)) ?? null);
   const nextSession = next && now !== null ? next.sessions.find((s) => Date.parse(s.start) > now) : undefined;
+  // During the race itself there's no upcoming session left in the weekend:
+  // show the one in progress instead of hiding the card.
+  const runningSession = next && now !== null && !nextSession ? next.sessions.filter((s) => Date.parse(s.start) <= now).at(-1) : undefined;
+  const featured = nextSession ?? runningSession;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <select aria-label="Season" value={year} onChange={(e) => setParam("year", e.target.value)} className="rounded-md border bg-card px-2 py-1.5 text-sm">
+        <select aria-label="Season" value={year} onChange={(e) => setParam("year", e.target.value)} className={pillSelect}>
           {years.map((y) => (
             <option key={y} value={y}>
               {y}
@@ -131,7 +137,7 @@ export function CalendarView() {
         </select>
         <label className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Times in</span>
-          <select aria-label="Timezone" value={zone} onChange={(e) => setParam("tz", e.target.value)} className="rounded-md border bg-card px-2 py-1.5 text-sm">
+          <select aria-label="Timezone" value={zone} onChange={(e) => setParam("tz", e.target.value)} className={pillSelect}>
             <option value="local">Your timezone{now !== null ? ` (${localZoneName()})` : ""}</option>
             <option value="ist">India (IST)</option>
             <option value="utc">UTC</option>
@@ -142,7 +148,7 @@ export function CalendarView() {
       {query.isPending || now === null ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-44" />
+            <Skeleton key={i} className="h-44 rounded-3xl" />
           ))}
         </div>
       ) : !query.data ? (
@@ -153,21 +159,22 @@ export function CalendarView() {
         </Card>
       ) : (
         <>
-          {next && nextSession && (
-            <Card className="gap-3 border-t-4 border-t-primary">
+          {next && featured && (
+            <Card className="gap-3 border-primary/30 bg-[radial-gradient(120%_140%_at_0%_0%,oklch(0.6_0.23_27/0.22),transparent_55%)]">
               <CardContent className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                    Next up · {nextSession.name}
+                    {nextSession ? "Next up" : <span className="text-primary">Live now</span>} · {featured.name}
                   </p>
                   <p className="text-lg font-bold">{next.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {fmt(nextSession.start, zone, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                    {nextSession ? "" : "Started "}
+                    {fmt(featured.start, zone, { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <Countdown target={nextSession.start} now={now} size="md" />
-                  <a href={`#round-${next.round}`} className="text-xs text-muted-foreground underline">
+                  {nextSession ? <Countdown target={nextSession.start} now={now} size="md" /> : <LiveBadge />}
+                  <a href={`#round-${next.round}`} className={pillButton("sm")}>
                     Jump to round {next.round}
                   </a>
                 </div>

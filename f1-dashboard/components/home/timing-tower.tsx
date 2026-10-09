@@ -20,6 +20,7 @@ function lapColour(row: TowerRow) {
   return "";
 }
 
+// Table text is 11px on narrow phones so a 7-character gap ("+14.126") fits its column.
 const ROW = "h-8 border-b border-border/50 last:border-0";
 const NUM = "text-right font-mono tabular-nums";
 
@@ -61,7 +62,7 @@ export function TimingTower({
         {rows.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">No timing data for this session yet.</p>
         ) : (
-          <table className="w-full table-fixed text-xs sm:text-sm">
+          <table className="w-full table-fixed text-[11px] min-[400px]:text-xs sm:text-sm">
             <colgroup>
               <col className="w-7" />
               <col className="w-14 sm:w-20" />

@@ -13,6 +13,7 @@ import { ChartCard } from "@/components/charts/chart-card";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
 import { Legend } from "@/components/charts/legend";
 import { CHART, seriesStyle, type SeriesStyle } from "@/components/charts/series";
+import { pillGroup, pillItem, pillSelect } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalysisDriver, LapTelemetry, SessionAnalysis, TelemetrySample } from "@/lib/analysis";
 import { getJson } from "@/lib/api-client";
@@ -76,7 +77,7 @@ function DriverSelect({ label, value, onChange, drivers }: { label: string; valu
       <select
         value={value ?? ""}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="rounded-md border bg-card px-2 py-1 text-sm"
+        className={pillSelect}
       >
         {drivers.map((d) => (
           <option key={d.driver_number} value={d.driver_number}>
@@ -167,13 +168,13 @@ export function TelemetryCompare({ data }: { data: SessionAnalysis }) {
           <div className="flex flex-wrap items-center gap-3">
             <DriverSelect label="Driver A" value={driverA?.driver_number ?? null} onChange={setA} drivers={withLaps} />
             <DriverSelect label="Driver B" value={driverB?.driver_number ?? null} onChange={setB} drivers={withLaps} />
-            <div role="group" aria-label="X axis" className="flex rounded-md border p-0.5 text-xs">
+            <div role="group" aria-label="X axis" className={pillGroup("sm")}>
               {(["d", "t"] as Axis[]).map((v) => (
                 <button
                   key={v}
                   onClick={() => setAxis(v)}
                   aria-pressed={axis === v}
-                  className={axis === v ? "rounded bg-secondary px-2 py-0.5" : "px-2 py-0.5 text-muted-foreground"}
+                  className={pillItem(axis === v, "neutral", "sm")}
                 >
                   {v === "d" ? "Distance" : "Time"}
                 </button>

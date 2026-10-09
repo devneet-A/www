@@ -29,7 +29,7 @@ export function ChartTooltip({ active, label, payload, series, formatValue, form
   if (sort) rows.sort((a, b) => (sort === "asc" ? a.v - b.v : b.v - a.v));
   if (rows.length === 0) return null;
   return (
-    <div className="rounded-md border bg-popover px-2.5 py-2 text-xs shadow-lg">
+    <div className="rounded-2xl border border-white/10 bg-popover/95 px-3 py-2 text-xs shadow-xl shadow-black/40 backdrop-blur">
       <div className="mb-1 text-muted-foreground">{formatLabel(Number(label))}</div>
       <ul className="space-y-0.5">
         {rows.slice(0, 12).map(({ s, v }) => (

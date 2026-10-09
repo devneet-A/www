@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { AnalysisDriver, AnalysisMeeting, SessionAnalysis } from "@/lib/analysis";
 import { getJson } from "@/lib/api-client";
 import { formatGap } from "@/lib/f1";
+import { pillButton, pillSelect } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import { LapTimeChart } from "./lap-time-chart";
 import { RaceTraceChart } from "./race-trace-chart";
@@ -34,7 +35,7 @@ function defaultSession(meetings: AnalysisMeeting[]) {
   return done.filter((s) => s.name === "Race").at(-1) ?? done.at(-1) ?? all.at(-1) ?? null;
 }
 
-const selectClass = "min-w-0 rounded-md border bg-card px-2 py-1.5 text-sm disabled:opacity-50";
+const selectClass = pillSelect;
 
 export function AnalysisView() {
   const router = useRouter();
@@ -176,13 +177,13 @@ export function AnalysisView() {
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 text-xs">
               <span className="text-muted-foreground">Drivers</span>
-              <button className="rounded border px-2 py-0.5" onClick={() => setDrivers(data.drivers.slice(0, DEFAULT_DRIVER_COUNT))}>
+              <button className={pillButton("sm")} onClick={() => setDrivers(data.drivers.slice(0, DEFAULT_DRIVER_COUNT))}>
                 Top {DEFAULT_DRIVER_COUNT}
               </button>
-              <button className="rounded border px-2 py-0.5" onClick={() => setDrivers(data.drivers)}>
+              <button className={pillButton("sm")} onClick={() => setDrivers(data.drivers)}>
                 All
               </button>
-              <button className="rounded border px-2 py-0.5" onClick={() => setDrivers([])}>
+              <button className={pillButton("sm")} onClick={() => setDrivers([])}>
                 None
               </button>
             </div>
@@ -196,8 +197,10 @@ export function AnalysisView() {
                     aria-pressed={on}
                     title={`${d.full_name}${d.team_name ? ` · ${d.team_name}` : ""}`}
                     className={cn(
-                      "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-semibold transition-colors",
-                      on ? "border-foreground/40 bg-secondary" : "text-muted-foreground opacity-70 hover:opacity-100",
+                      "flex items-center gap-1.5 rounded-full border py-1 pr-3 pl-2 text-xs font-bold transition-colors",
+                      on
+                        ? "border-white/25 bg-white/10 shadow-sm shadow-black/30"
+                        : "border-white/[0.06] bg-card/60 text-muted-foreground hover:border-white/15 hover:text-foreground",
                     )}
                   >
                     <TeamBar colour={d.team_colour} />
@@ -259,7 +262,7 @@ export function AnalysisSkeleton() {
       <Skeleton className="h-16 w-full" />
       <div className="grid gap-4 xl:grid-cols-2">
         {Array.from({ length: 4 }, (_, i) => (
-          <Skeleton key={i} className="h-80 w-full" />
+          <Skeleton key={i} className="h-80 w-full rounded-3xl" />
         ))}
       </div>
     </div>

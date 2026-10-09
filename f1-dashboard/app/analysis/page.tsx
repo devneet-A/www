@@ -13,7 +13,7 @@ export default function AnalysisPage() {
   return (
     <main id="main" className="mx-auto w-full max-w-6xl flex-1 space-y-4 px-4 py-4 sm:py-6">
       <header>
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">Session analysis</h1>
+        <h1 className="text-2xl font-black tracking-tight italic sm:text-3xl">Session analysis</h1>
         <p className="text-sm text-muted-foreground">Lap times, race trace, tyre strategy and telemetry for any session since 2023.</p>
       </header>
       <Suspense fallback={<AnalysisSkeleton />}>

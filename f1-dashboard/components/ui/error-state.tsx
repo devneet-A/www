@@ -6,6 +6,7 @@
  */
 import { AlertCircle, RotateCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { pillButton } from "@/components/ui/pill";
 import { friendlyError } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +41,7 @@ export function ErrorState({
           <button
             onClick={onRetry}
             disabled={retrying}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50"
+            className={pillButton()}
           >
             <RotateCw className={cn("size-3.5", retrying && "motion-safe:animate-spin")} aria-hidden /> Retry
           </button>

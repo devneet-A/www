@@ -20,8 +20,9 @@ No database. Runs on Vercel's free (Hobby) plan.
 | **Standings** (`/standings`) | Drivers' and constructors' championships with a points-progression chart. |
 | **Calendar** (`/calendar`) | Every round and session in your timezone (or IST / UTC), winners of past rounds, countdown to the next session. |
 
-Dark broadcast-style theme, team colours from the API, mobile-first, no layout jumps while loading,
-and a friendly message (never a blank screen) when something fails.
+Dark broadcast-style theme with a floating pill navigation bar, floating rounded panels and
+pill-shaped controls; team colours from the API; mobile-first; no layout jumps while loading; and a
+friendly message (never a blank screen) when something fails.
 
 ## Quick start
 
@@ -149,6 +150,30 @@ Running the CLI from inside `f1-dashboard/` makes that folder the project root a
 | Lots of errors on every page | Check `/api/health`. If an upstream is down, the app retries on its own when it's back. |
 | Times look wrong | Times use your device's timezone. On the calendar, switch "Times in" to IST or UTC to compare. |
 
+## Fonts
+
+The official F1 typeface ("Formula1 Display") is proprietary and licensed by Formula One, so it
+isn't included. The app uses **Titillium Web** (free, SIL Open Font License), which has a similar
+sporty, technical look, plus **Geist Mono** for timing numbers so columns don't shift as digits
+change. Both are downloaded at build time by `next/font` and served from your own domain.
+
+If you hold a licence for the official font, put the `.woff2` files in `app/fonts/` and replace
+the `Titillium_Web(...)` call in `app/layout.tsx`. Keeping the same CSS variable name means
+nothing else needs to change:
+
+```ts
+import localFont from "next/font/local";
+
+const titillium = localFont({
+  variable: "--font-titillium", // same variable: the rest of the app picks it up
+  src: [
+    { path: "./fonts/Formula1-Regular.woff2", weight: "400" },
+    { path: "./fonts/Formula1-Bold.woff2", weight: "700" },
+    { path: "./fonts/Formula1-Black.woff2", weight: "900" },
+  ],
+});
+```
+
 ## Project structure
 
 ```
@@ -169,7 +194,7 @@ app/
   layout.tsx           dark theme, fonts, providers, offline banner
   providers.tsx        TanStack Query client (browser cache + polling)
 components/
-  ui/                  shadcn/ui components (card, badge, skeleton) + shared error card
+  ui/                  shadcn/ui components (card, badge, skeleton), shared error card, pill styles
   home/                Home page: event header, live dashboard, timing tower, race control, weather
   f1/                  reusable F1 bits (tyre badge, team colour bar)
   charts/              chart frame (chart/table toggle), legend, tooltip, series styles

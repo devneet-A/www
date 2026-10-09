@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { pillGroup, pillItem } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 
 export interface TableData {
@@ -16,7 +17,7 @@ export interface TableData {
 
 export function DataTable({ data }: { data: TableData }) {
   return (
-    <div className="max-h-80 overflow-auto rounded-md border">
+    <div className="max-h-80 overflow-auto rounded-2xl border border-white/[0.07]">
       <table className="w-full text-xs">
         <thead className="sticky top-0 bg-card">
           <tr>
@@ -74,13 +75,13 @@ export function ChartCard({
           </div>
           <div className="flex items-center gap-2">
             {controls}
-            <div role="group" aria-label="View" className="flex rounded-md border p-0.5 text-xs">
+            <div role="group" aria-label="View" className={pillGroup("sm")}>
               {(["chart", "table"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
                   aria-pressed={view === v}
-                  className={cn("rounded px-2 py-0.5 capitalize", view === v ? "bg-secondary text-foreground" : "text-muted-foreground")}
+                  className={pillItem(view === v, "neutral", "sm")}
                 >
                   {v}
                 </button>

@@ -57,8 +57,8 @@ export function RaceControlFeed({ messages }: { messages: RaceControlItem[] }) {
             {messages.map((m) => {
               const c = chip(m);
               return (
-                <li key={`${m.date}|${m.message}`} className="flex gap-2 rounded-md px-1.5 py-1.5 text-xs hover:bg-muted/50 sm:text-sm">
-                  <span className={cn("mt-0.5 h-4.5 min-w-11 shrink-0 rounded px-1 text-center text-[10px] leading-[1.125rem] font-bold", c.className)}>
+                <li key={`${m.date}|${m.message}`} className="flex gap-2 rounded-xl px-1.5 py-1.5 text-xs hover:bg-muted/50 sm:text-sm">
+                  <span className={cn("mt-0.5 h-4.5 min-w-12 shrink-0 rounded-full px-1.5 text-center text-[10px] leading-[1.125rem] font-bold", c.className)}>
                     {c.label}
                   </span>
                   <span className="min-w-0 flex-1">

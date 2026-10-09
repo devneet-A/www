@@ -19,6 +19,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getJson } from "@/lib/api-client";
 import type { StandingsPayload } from "@/lib/standings";
+import { pillGroup, pillItem, pillSelect } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 
 type Kind = "drivers" | "constructors";
@@ -103,7 +104,7 @@ export function StandingsView() {
           aria-label="Season"
           value={year}
           onChange={(e) => setParam("year", e.target.value)}
-          className="rounded-md border bg-card px-2 py-1.5 text-sm"
+          className={pillSelect}
         >
           {years.map((y) => (
             <option key={y} value={y}>
@@ -111,14 +112,14 @@ export function StandingsView() {
             </option>
           ))}
         </select>
-        <div role="tablist" aria-label="Championship" className="flex rounded-md border p-0.5 text-sm">
+        <div role="tablist" aria-label="Championship" className={pillGroup()}>
           {(["drivers", "constructors"] as Kind[]).map((k) => (
             <button
               key={k}
               role="tab"
               aria-selected={kind === k}
               onClick={() => setParam("view", k)}
-              className={cn("rounded px-3 py-1 capitalize", kind === k ? "bg-secondary" : "text-muted-foreground")}
+              className={pillItem(kind === k)}
             >
               {k}
             </button>
@@ -128,8 +129,8 @@ export function StandingsView() {
 
       {query.isPending ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-          <Skeleton className="h-[36rem]" />
-          <Skeleton className="h-[28rem]" />
+          <Skeleton className="h-[36rem] rounded-3xl" />
+          <Skeleton className="h-[28rem] rounded-3xl" />
         </div>
       ) : !query.data ? (
         <ErrorState title="Couldn't load the standings" error={query.error} onRetry={() => query.refetch()} retrying={query.isFetching} />

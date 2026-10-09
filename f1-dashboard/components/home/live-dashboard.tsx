@@ -115,7 +115,7 @@ export function LiveDashboard() {
   return (
     <div className="space-y-4">
       {authRejected && (
-        <p className="flex gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-sm text-amber-200">
+        <p className="flex gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-2.5 text-sm text-amber-200">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <span>
             OpenF1 refused the configured credentials for live data. Check OPENF1_API_KEY or OPENF1_USERNAME /
